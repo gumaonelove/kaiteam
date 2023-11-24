@@ -7,8 +7,19 @@ def inPolygon(x, y, xp, yp, w, h):
     return c
 
 
-def crop_image(frame, output_path, left_bottom_coords: tuple, right_top_coords: tuple):
+def crop_image(frame, left_bottom_coords: tuple, right_top_coords: tuple):
     # Вырезаем часть изображения по заданным координатам
     cropped_image = frame[left_bottom_coords[1]:right_top_coords[1], left_bottom_coords[0]:right_top_coords[0]]
 
     return cropped_image
+
+
+def calculate_rectangle_area(x1: float, y1: float, x2: float, y2: float) -> float:
+    # Расчет длины и ширины прямоугольника
+    length = abs(x2 - x1)
+    width = abs(y2 - y1)
+
+    # Расчет площади прямоугольника
+    area = length * width
+
+    return area

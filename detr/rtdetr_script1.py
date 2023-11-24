@@ -7,8 +7,10 @@ import numpy
 import time
 import pandas as pd
 
-from utils import inPolygon, crop_image
+from utils import inPolygon, crop_image, calculate_rectangle_area
 from config import STEP, video_paths, text_paths
+
+from ..mobile_net.classificator import classify_image
 
 
 # Load the YOLOv8 model
@@ -74,11 +76,22 @@ for video_path, text_path in zip(video_paths, text_paths):
                     if cls == 5:  # it is the bus
                         box = results[0].boxes.xyxy[i]
                         x_left, y_left, x_right, y_right = list(box)
-                        bus_frame = crop_image(frame, (int(x_left), int(y_left)), (int(x_right), int(y_right)))
+                        bus_frame = crop_image(
+                            frame,
+                            (int(x_left), int(y_left)),
+                            (int(x_right), int(y_right))
+                        )
+                        bus_frame_area = calculate_rectangle_area(x_left, y_left, x_right, y_right)
+                        # TODO На класифкацию мы должны отдавать самый большой по площади frame, причем
+                        # Данная логика должна происходить, пока машина находится в полигоне
+
+                        # TODO Зейчас захаркодим, и будем отдавать каждый кард на классификацию
+                        bus_class = classify_image(bus_frame)
+                        # TODO Обработка если автобус ... иначе ...
 
                     if id not in speed_count.keys():
                         speed_count[id]=[-1,-1]
-                        flags[id]='False'
+                        flags[id] = 'False'
                     x=speed_count[id][0]
                     for area in areas:
                         if inPolygon((box[0]+box[2])/2, (box[1]+box[3])/2, numpy.array(area)[:,0], numpy.array(area)[:,1], w, h) and speed_count[id][0]==-1 and flags[id]=='False':
@@ -92,6 +105,7 @@ for video_path, text_path in zip(video_paths, text_paths):
                         if id not in class_count.keys():
                             class_count[id] = []
                         class_count[id].append(cls)
+
                         cv2.circle(
                             annotated_frame, (int(area[0][0] * 1920), int(area[0][1] * 1080)), 10, (255, 255, 0), -1)
                         cv2.circle(
